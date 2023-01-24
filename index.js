@@ -35,9 +35,20 @@ app.use(sessions({
   resave: false
 }));
 
+const whitelist = [`${process.env.VERCEL_ORIGIN ? process.env.VERCEL_ORIGIN : 'http://localhost:3000'}`, `${process.env.ORIGIN}`];
+
 app.use(express.json({ limit: '30mb', extended: true }));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
-app.use(cors({ credentials: true, origin: `${process.env.ORIGIN}` }));
+app.use(cors({
+  credentials: true, origin:
+    (origin, callback) => {
+      if (whitelist.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+}));
 
 app.use(cookieParser());
 
