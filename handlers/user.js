@@ -1,11 +1,11 @@
-import { v2 } from 'cloudinary';
-import passport from 'passport';
+import { v2 } from "cloudinary";
+import passport from "passport";
 
-import User from '../models/user.js';
-import { createUser, getFullUserById } from '../services/users-service.js';
+import User from "../models/user.js";
+import { createUser, getFullUserById } from "../services/users-service.js";
 
 export const signinHandler = async (req, res, next) => {
-  await passport.authenticate('local', (err, user, info) => {
+  await passport.authenticate("local", (err, user, info) => {
     if (err) {
       return next(err);
     }
@@ -29,12 +29,13 @@ export const signupHandler = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res.status(409).json({ message: 'User already exists!' });
+      return res.status(409).json({ message: "User already exists!" });
     }
 
-    await createUser(req.body);
+    const temp = await createUser(req.body);
+    // console.log(temp);
 
-    return passport.authenticate('local', (err, user) => {
+    return passport.authenticate("local", (err, user) => {
       if (err) {
         return next(err);
       }
@@ -43,7 +44,9 @@ export const signupHandler = async (req, res, next) => {
         if (error) {
           return next(error);
         }
-        return res.status(200).json({ id: user._id, userType, firstName, lastName });
+        return res
+          .status(200)
+          .json({ id: user._id, userType, firstName, lastName });
       });
     })(req, res, next);
   } catch (error) {
@@ -75,9 +78,11 @@ export const imageUpload = async (req, res, next) => {
     console.log(req.user);
     console.log(uploadedImage);
     await User.findOneAndUpdate(
-      { _id: req.user._id },
-      { image: uploadedImage.url },
+      // { _id: req.user._id },
+      { _id: req.body.id },
+      { image: uploadedImage.url }
     );
+    console.log(uploadedImage);
     return res.json({ image: uploadedImage.url });
   } catch (error) {
     return next(error);

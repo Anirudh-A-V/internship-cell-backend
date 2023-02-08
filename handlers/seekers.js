@@ -1,25 +1,35 @@
-import { v2 } from 'cloudinary';
-import { pick } from 'lodash-es';
-import Seeker from '../models/seeker.js';
+import { v2 } from "cloudinary";
+import { pick } from "lodash-es";
+import Seeker from "../models/seeker.js";
 
-import { newSeekerRegister, updateSeekerByUserId } from '../services/seekers-service.js';
-import { updateUserById, mergeAsLoggedUser } from '../services/users-service.js';
-import { searchJobs } from '../services/jobs-service.js';
+import {
+  newSeekerRegister,
+  updateSeekerByUserId,
+} from "../services/seekers-service.js";
+import {
+  updateUserById,
+  mergeAsLoggedUser,
+} from "../services/users-service.js";
+import { searchJobs } from "../services/jobs-service.js";
 
 export const seekerRegistrationHandler = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    // console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", req.user);
+    const userId = req.body.id;
 
-    const details = pick(req.body, [
-      'skills',
-      'dob',
-      'mobileNum',
-    ]);
+    const details = pick(req.body, ["skills", "dob", "mobileNum"]);
+
+    console.log(details);
 
     const newSeeker = await newSeekerRegister(userId, details);
+    console.log("newseeker", newSeeker);
+
     const updatedUser = await updateUserById(userId, details);
+    console.log("updatedUser", updatedUser);
 
     const seekerDetails = mergeAsLoggedUser(newSeeker, updatedUser);
+
+    console.log(seekerDetails);
 
     return res.json(seekerDetails);
   } catch (error) {
@@ -32,11 +42,11 @@ export const seekerEditHandler = async (req, res, next) => {
     const userId = req.user._id;
 
     const details = pick(req.body, [
-      'firstName',
-      'lastName',
-      'skills',
-      'dob',
-      'mobileNum',
+      "firstName",
+      "lastName",
+      "skills",
+      "dob",
+      "mobileNum",
     ]);
 
     const updatedSeeker = await updateSeekerByUserId(userId, details);
@@ -59,8 +69,8 @@ export const resumeUpload = async (req, res, next) => {
     console.log(req.user);
     console.log(uploadedResume);
     await Seeker.findOneAndUpdate(
-      { userId: req.user._id },
-      { resume: uploadedResume.url },
+      { userId: req.body.id },
+      { resume: uploadedResume.url }
     );
     return res.json({ resume: uploadedResume.url });
   } catch (error) {
